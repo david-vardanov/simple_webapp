@@ -1,0 +1,15 @@
+{
+  "name": "simple-webapp",
+  "version": "1.0.0",
+  "main": "massTest.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate": "node src/utils/migrator.js",
+    "migrate:up": "node src/utils/migrator.js up",
+    "migrate:down": "node src/utils/migrator.js down"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
