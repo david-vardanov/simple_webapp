@@ -1,7 +1,7 @@
-// src/middlewares/requestLogger.js
-
 const fs = require("fs");
 const path = require("path");
+
+// Пути к директориям и файлам для логирования
 const logDirectory = path.join(__dirname, "../../logs");
 const logFilePath = path.join(logDirectory, "requests.log");
 const statsFilePath = path.join(logDirectory, "stats.json");
@@ -26,6 +26,7 @@ if (fs.existsSync(statsFilePath)) {
   }
 }
 
+// Обновление статистики в зависимости от статуса ответа
 const updateStats = (statusCode) => {
   if (statusCode === 200) {
     stats.success += 1;
@@ -37,6 +38,7 @@ const updateStats = (statusCode) => {
   fs.writeFileSync(statsFilePath, JSON.stringify(stats), "utf8");
 };
 
+// Middleware для логирования запросов
 const requestLogger = (req, res, next) => {
   res.on("finish", () => {
     const logEntry = {

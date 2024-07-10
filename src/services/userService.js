@@ -1,8 +1,7 @@
-// src/services/userService.js
-
 const User = require("../models/user");
 const sequelize = require("../config/database");
 
+// Увеличение баланса пользователя в транзакции
 const increaseUserBalance = async (userId, amount) => {
   return sequelize.transaction(async (t) => {
     const user = await User.findByPk(userId, {
@@ -18,6 +17,7 @@ const increaseUserBalance = async (userId, amount) => {
   });
 };
 
+// Уменьшение баланса пользователя в транзакции
 const decreaseUserBalance = async (userId, amount) => {
   return sequelize.transaction(async (t) => {
     const user = await User.findByPk(userId, {

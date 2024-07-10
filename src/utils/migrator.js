@@ -8,6 +8,7 @@ const umzug = new Umzug({
   logger: console,
 });
 
+// Выполнение миграций в зависимости от переданной команды
 const runMigrations = async (command) => {
   try {
     if (command === "up") {

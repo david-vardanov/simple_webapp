@@ -1,5 +1,3 @@
-// src/controllers/userController.js
-
 const express = require("express");
 const router = express.Router();
 const {
@@ -7,41 +5,15 @@ const {
   decreaseUserBalance,
 } = require("../services/userService");
 const User = require("../models/user");
+const handleBalanceChange = require("../middlewares/balanceHandler");
 
-router.put("/balanceIncrease", async (req, res) => {
-  const { userId, amount } = req.query;
+// Увеличение баланса пользователя
+router.put("/balanceIncrease", handleBalanceChange(increaseUserBalance));
 
-  if (!userId || !amount) {
-    return res.status(400).json({ error: "Missing userId or amount" });
-  }
+// Уменьшение баланса пользователя
+router.put("/balanceDecrease", handleBalanceChange(decreaseUserBalance));
 
-  try {
-    const user = await increaseUserBalance(userId, parseInt(amount));
-    res.json(user);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-router.put("/balanceDecrease", async (req, res) => {
-  const { userId, amount } = req.query;
-
-  if (!userId || !amount) {
-    return res.status(400).json({ error: "Missing userId or amount" });
-  }
-
-  try {
-    const user = await decreaseUserBalance(userId, parseInt(amount));
-    res.json(user);
-  } catch (error) {
-    if (error.message === "Insufficient funds") {
-      res.status(400).json({ error: "Insufficient funds" });
-    } else {
-      res.status(400).json({ error: error.message });
-    }
-  }
-});
-
+// Получение информации о пользователе
 router.get("/:userId", async (req, res) => {
   const { userId } = req.params;
 

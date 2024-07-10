@@ -16,7 +16,7 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log("Database connected!");
-    await runMigrations("up"); // Передача команды "up" для выполнения миграций
+    await runMigrations("up");
     app.listen(3000, () => {
       console.log("Server is running on port 3000");
     });
