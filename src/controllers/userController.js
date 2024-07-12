@@ -1,3 +1,4 @@
+// src/controllers/userController.js
 const express = require("express");
 const router = express.Router();
 const {
@@ -6,15 +7,29 @@ const {
 } = require("../services/userService");
 const User = require("../models/user");
 const handleBalanceChange = require("../middlewares/balanceHandler");
+const {
+  validateAmount,
+  validateUserId,
+} = require("../validators/validateAmount");
 
 // Увеличение баланса пользователя
-router.put("/balanceIncrease", handleBalanceChange(increaseUserBalance));
+router.put(
+  "/balanceIncrease",
+  validateUserId,
+  validateAmount,
+  handleBalanceChange(increaseUserBalance)
+);
 
 // Уменьшение баланса пользователя
-router.put("/balanceDecrease", handleBalanceChange(decreaseUserBalance));
+router.put(
+  "/balanceDecrease",
+  validateUserId,
+  validateAmount,
+  handleBalanceChange(decreaseUserBalance)
+);
 
 // Получение информации о пользователе
-router.get("/:userId", async (req, res) => {
+router.get("/:userId", validateUserId, async (req, res) => {
   const { userId } = req.params;
 
   try {
