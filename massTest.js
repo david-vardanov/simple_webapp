@@ -1,71 +1,55 @@
 const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
 
-const USER_ID = 1;
-const AMOUNT = 2;
-const REQUESTS = 10000;
-const THREADS = 1000; // Количество параллельных запросов в один момент
-const LOG_FILE = path.join(__dirname, "logs/logs.json");
-const STATS_FILE = path.join(__dirname, "logs/stats.json");
-
-let successCount = 0;
-let insufficientFundsCount = 0;
-
-// Убедитесь, что лог файл и файл статистики существуют
-fs.writeFileSync(LOG_FILE, "");
-fs.writeFileSync(STATS_FILE, "");
-
-const sendRequest = async () => {
-  try {
-    const response = await axios.put(
-      `http://localhost:3000/users/balanceDecrease`,
-      null,
-      {
-        params: {
-          userId: USER_ID,
-          amount: AMOUNT,
-        },
-      }
-    );
-    if (response.status === 200) {
-      successCount++;
-    }
-    const logEntry = {
-      timestamp: new Date().toISOString(),
-      responseCode: response.status,
-    };
-    fs.appendFileSync(LOG_FILE, JSON.stringify(logEntry) + "\n", "utf8");
-  } catch (error) {
-    if (error.response && error.response.status === 400) {
-      insufficientFundsCount++;
-    }
-    const logEntry = {
-      timestamp: new Date().toISOString(),
-      responseCode: error.response ? error.response.status : 500,
-    };
-    fs.appendFileSync(LOG_FILE, JSON.stringify(logEntry) + "\n", "utf8");
-  }
-};
-
-const test = async () => {
+(async () => {
   const pLimit = (await import("p-limit")).default;
-  const limit = pLimit(THREADS);
-  const promises = Array.from({ length: REQUESTS }, () => limit(sendRequest));
+  const limit = pLimit(100); // Ограничение одновременных запросов
 
-  await Promise.all(promises);
-
-  const stats = {
-    success: successCount,
-    insufficientFunds: insufficientFundsCount,
+  const sendRequest = async (index) => {
+    try {
+      const response = await axios.put(
+        "http://localhost:3000/users/balanceDecrease",
+        null,
+        {
+          params: { userId: 1, amount: 2 },
+        }
+      );
+      if (response.data.error) {
+        return { success: false, message: response.data.error };
+      }
+      return { success: true };
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.error === "Insufficient funds"
+      ) {
+        return { success: false, message: "Insufficient funds" };
+      }
+      return { success: false, message: error.message };
+    }
   };
-  fs.writeFileSync(STATS_FILE, JSON.stringify(stats), "utf8");
 
-  console.log("Test completed");
-  console.log("Success:", successCount);
-  console.log("Insufficient funds:", insufficientFundsCount);
-};
+  const test = async () => {
+    const requests = [];
+    for (let i = 0; i < 10000; i++) {
+      requests.push(limit(() => sendRequest(i)));
+    }
+    const results = await Promise.all(requests);
+    const successCount = results.filter((result) => result.success).length;
+    const insufficientFundsCount = results.filter(
+      (result) => result.message === "Insufficient funds"
+    ).length;
 
-test().catch((err) => {
-  console.error("Error during test:", err);
-});
+    console.log("Test completed");
+    console.log("Success:", successCount);
+    console.log("Insufficient funds:", insufficientFundsCount);
+
+    // Дополнительное логирование ошибок
+    const errorMessages = results
+      .filter((result) => !result.success)
+      .map((result) => result.message);
+    console.log("Error messages:", errorMessages.slice(0, 10)); // Показываем первые 10 ошибок для отладки
+  };
+
+  test();
+})();

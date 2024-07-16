@@ -1,5 +1,3 @@
-// src/middlewares/balanceHandler.js
-
 const handleBalanceChange = (action) => {
   return async (req, res) => {
     const { userId, amount } = req.query;
@@ -15,6 +13,7 @@ const handleBalanceChange = (action) => {
         error.message === "Insufficient funds"
           ? "Insufficient funds"
           : error.message;
+      console.error(`Error processing request: ${error.message}`);
       res.status(400).json({ error: errorMessage });
     }
   };
